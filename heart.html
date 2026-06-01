@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>This is for you</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .text-overlay {
+            position: absolute;
+            top: 15%;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055;
+            z-index: 10;
+            animation: pulse 2s infinite ease-in-out;
+            pointer-events: none;
+        }
+        /* Cinematic Button for Audio & Animation Trigger */
+        #start-btn {
+            position: absolute;
+            z-index: 100;
+            padding: 15px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff0055, #ff5500);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.9);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055; }
+        }
+    </style>
+</head>
+<body>
+
+    <button id="start-btn" onclick="initVideoEffect()">Play Cinematic Experience 🎬</button>
+    <div class="text-overlay" id="text" style="display: none;">this is for you</div>
+    <canvas id="canvas"></canvas>
+
+    <!-- Background music to create the full interactive video vibe -->
+    <audio id="bg-music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        const count = 1200; // Dense particle count for rich visual effect
+        let animationActive = false;
+
+        // Custom neon colors inspired by the visual reference
+        const colorChoices = ['#ff0055', '#ff5500', '#ff00aa', '#ffffff', '#00f0ff'];
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height; // Initial random spread
+            }
+
+            reset() {
+                this.phi = Math.random() * Math.PI * 2;
+                this.speed = Math.random() * 1 + 0.5;
+                this.scale = Math.random() * 0.35 + 0.1;
+                this.color = colorChoices[Math.floor(Math.random() * colorChoices.length)];
+                
+                // Mathematical parametric heart curve equation
+                const t = Math.random() * Math.PI * 2;
+                this.targetX = canvas.width / 2 + 16 * Math.pow(Math.sin(t), 3) * 15;
+                this.targetY = canvas.height / 2 - (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * 15;
+                
+                this.x = canvas.width / 2 + (Math.random() - 0.5) * 50;
+                this.y = canvas.height + Math.random() * 100;
+                this.alpha = Math.random() * 0.5 + 0.5;
+                this.size = Math.random() * 3 + 1;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                // Smooth particle gravitational attraction to form the heart shape
+                this.x += (this.targetX - this.x) * 0.02 * this.speed;
+                this.y += (this.targetY - this.y) * 0.02 * this.speed;
+
+                // Subtle heart beat/pulsing effect
+                this.x += Math.sin(Date.now() * 0.003 + this.phi) * 0.3;
+                this.y += Math.cos(Date.now() * 0.003 + this.phi) * 0.3;
+
+                this.draw();
+            }
+        }
+
+        function initVideoEffect() {
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('text').style.display = 'block';
+            
+            const music = document.getElementById('bg-music');
+            music.play().catch(e => console.log("Audio requires user interaction to play."));
+
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+
+            animationActive = true;
+            animate();
+        }
+
+        function animate() {
+            if (!animationActive) return;
+            requestAnimationFrame(animate);
+
+            // Motion blur effect for smooth cinematic trailing
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => p.update());
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
